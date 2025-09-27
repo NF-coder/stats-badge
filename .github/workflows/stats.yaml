@@ -1,0 +1,54 @@
+name: Update SVG and Deploy to Pages
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  generate-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Generate SVG file
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        USERNAME: "NF-coder"
+      run: |
+        python src/main.py
+
+    - name: Verify SVG file
+      run: |
+        if [ ! -f out.svg ]; then
+          echo "Error: out.svg was not generated!"
+          exit 1
+        fi
+
+        mkdir -p deploy-files
+        cp out.svg deploy-files/
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./deploy-files
+        keep_files: false
+        allow_empty_commit: false

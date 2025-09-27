@@ -1,0 +1,90 @@
+<svg width="{{plane_info.width}}" height="{{plane_info.height}}" xmlns="http://www.w3.org/2000/svg">
+    <rect x="0" y="0" width="{{plane_info.width}}" height="{{plane_info.height}}" fill="black" rx="7" />
+
+    <defs>
+        <mask id="anim-mask">
+            <circle cx="{{piechart_info.center_x}}" cy="{{piechart_info.center_y}}" r="{{piechart_info.outer_radius}}" fill="black"/>
+            <circle
+                cx="{{piechart_info.center_x}}"
+                cy="{{piechart_info.center_y}}"
+                r="{{piechart_info.outer_radius/2}}"
+                stroke-width="{{piechart_info.outer_radius}}"
+                fill="none"
+                stroke="white" 
+                stroke-linecap="butt"
+                pathLength="100"
+                transform="rotate(-90 {{piechart_info.center_x}} {{piechart_info.center_y}})"
+            >
+                <animate attributeName="stroke-dasharray"
+                   values="0 100; 100 0"
+                   dur="0.7s" begin="0s" fill="freeze" keyTimes="0;1" calcMode="spline"/>
+            </circle>
+        </mask>
+    </defs>
+
+    
+    <g mask="url(#anim-mask)">
+    {% for section in sections_array %}
+        <path d="
+            M 
+                {{section.start_outer_cords.x}} {{section.start_outer_cords.y}}
+            A
+                {{piechart_info.outer_radius}} {{piechart_info.outer_radius}}
+                0
+                {{1 if section.section_finish_angle-section.section_start_angle>=180 else 0}}
+                1
+                {{section.finish_outer_cords.x}} {{section.finish_outer_cords.y}}
+            L
+                {{section.finish_inner_cords.x}} {{section.finish_inner_cords.y}}
+            A
+                {{piechart_info.inner_radius}} {{piechart_info.inner_radius}}
+                0
+                {{1 if section.section_finish_angle-section.section_start_angle>=180 else 0}}
+                0
+                {{section.start_inner_cords.x}} {{section.start_inner_cords.y}}
+            Z"
+            fill="{{section.color}}"
+        />
+    {% endfor %}
+    </g>
+    
+    <g class="captionWrapper">
+    {% set ns = namespace(pos_y=caption_info.margin_y, anim_delay=0.1) %}   
+    {% for section in sections_array %}
+        <g opacity="0">
+            <animate attributeName="opacity"
+                from="0" to="1" dur="0.2s" begin="{{ns.anim_delay}}s" fill="freeze"
+            />
+            <rect
+                x="{{caption_info.margin_x}}"
+                y="{{ns.pos_y}}"
+                width="15" height="15"
+                fill="{{section.color}}"
+                rx="4"   
+            /> 
+            <text
+                x="{{caption_info.margin_x+20}}"
+                y="{{ns.pos_y + 12}}"
+                fill="{{caption_info.font_color}}"
+                class="disableSelect caption"
+            >
+                {{section.name}}
+            </text>
+        </g>
+        {% set ns.pos_y = ns.pos_y+caption_info.space_between_captions %}
+        {% set ns.anim_delay = ns.anim_delay+0.2 %}
+    {% endfor %}
+    </g>
+
+    <style>
+        .caption {
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .disableSelect {
+            user-select: none;
+        }
+    </style>
+</svg>
