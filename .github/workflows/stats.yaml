@@ -36,7 +36,7 @@ jobs:
     - name: Generate SVG file
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        USERNAME: "NF-coder"
+        USERNAME: ${{ github.actor }}
       run: |
         python src/main.py
 
