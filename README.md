@@ -7,5 +7,5 @@ The project __automatically__ generates a new personal badge every 2 hours.
 To use this project you should only fork it!\
 Then you can use it with
 ```html
-<img src="https://your-gh-pagepurl/out.svg">
+<img src="https://your-gh-page-url/out.svg">
 ```
