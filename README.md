@@ -3,6 +3,8 @@
 Simple github profile languages stats badges.\
 The project __automatically__ generates a new personal badge every 2 hours.
 
+<img src="https://nf-coder.github.io/stats-badge/out.svg">
+
 ## Quick start
 To use this project you should:
 1. Fork it
