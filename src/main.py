@@ -1,4 +1,5 @@
 import os
+from dataclasses import dataclass
 
 from renderer.renderer import RenderBuilder
 from oklchUtils.OKLCHUtils import OKLCHUtils
@@ -6,7 +7,7 @@ from calc import Calc
 from settings import Settings
 from fetcher.fetcher import FetchLangStats
 
-# Fetch info
+# Some settinga
 USERNAME = os.environ['USERNAME']
 TOKEN = os.environ['GITHUB_TOKEN']
 OUTPUT_FILE: str = "./out.svg"
@@ -14,47 +15,68 @@ SETTINGS_FILE: str = "./settings.yaml"
 
 SETTINGS = Settings.from_yaml(SETTINGS_FILE)
 
+
+@dataclass
+class LangData:
+    name: str
+    size: float
+    github_color: str
+
 def get_langs_data(
         token: str,
         username: str,
         exclude_langs: list[str] = SETTINGS.GENERAL_SETTINGS.EXCLUDED_LANGUAGES
-    ) -> dict[str, float]:
-    info = {}
-    total_size = 0
+    ) -> list[LangData]:
+    info: dict[str, LangData] = {}
+    total_size: float = 0
 
     for elem in FetchLangStats(token).fetch_user(username):
         if elem.name in exclude_langs: continue
 
         total_size += elem.size
-        if elem.name not in info: info[elem.name] = elem.size
-        else: info[elem.name] += elem.size
+        if elem.name not in info: info[elem.name] = LangData(elem.name, elem.size, elem.github_color)
+        else: info[elem.name].size += elem.size
 
-    return {k: info[k]/total_size for k in info} 
+    return [LangData(
+        info[k].name,
+        info[k].size/total_size,
+        info[k].github_color
+    ) for k in info]
 
-def truncate(langs_arr: list[tuple[float, str]], k: int):
+def truncate(langs_arr: list[LangData], k: int):
     if len(langs_arr) <= k: return langs_arr
-    return langs_arr[:k-1] + [(sum(map(lambda x: x[0], langs_arr[k-1:])), "Other")]
+    return langs_arr[:k-1] + [LangData("Other", sum(map(lambda x: x.size, langs_arr[k-1:])), SETTINGS.GENERAL_SETTINGS.COLORING.OTHER_COLOR)]
+
+def coloring(sorted_percents: list[LangData]) -> list[str]:
+    coloring_cfg = SETTINGS.GENERAL_SETTINGS.COLORING
+    
+    if coloring_cfg.TYPE == "oklch":
+        if hasattr(coloring_cfg, "CHROMA") and hasattr(coloring_cfg, "LIGHTNESS"):
+            return OKLCHUtils.create_colors_array(
+                length=len(sorted_percents),
+                chroma=getattr(coloring_cfg, "CHROMA"),
+                lightness=getattr(coloring_cfg, "LIGHTNESS")
+            )
+        raise ValueError("Invalid oklch coloring config")
+    elif coloring_cfg.TYPE == "github":
+        return [elem.github_color for elem in sorted_percents]
+    
+    raise ValueError("No such coloring config")
 
 def main():
-    languages_stats = get_langs_data(TOKEN, USERNAME)
-
-    sorted_percents = sorted(
-        [(percent, name) for percent,name in zip(languages_stats.values(), languages_stats.keys())],
-        key=lambda x: x[0],
+    sorted_langs = sorted(
+        get_langs_data(TOKEN, USERNAME),
+        key=lambda x: x.size,
         reverse=True
     )
 
-    sorted_percents = truncate(sorted_percents, SETTINGS.GENERAL_SETTINGS.TOP_K)
+    sorted_percents = truncate(sorted_langs, SETTINGS.GENERAL_SETTINGS.TOP_K)
 
     _ = Calc(
         outer_radius=SETTINGS.DIAGRAM_SETTINGS.OUTER_RADIUS,
         thickness=SETTINGS.DIAGRAM_SETTINGS.THICKNESS,
-        percent_array=[elem[0] for elem in sorted_percents],
-        sections_colors_array=OKLCHUtils.create_colors_array(
-            length=len(sorted_percents),
-            chroma=SETTINGS.GENERAL_SETTINGS.COLORING.CHROMA,
-            lightness=SETTINGS.GENERAL_SETTINGS.COLORING.LIGHTNESS
-        ),
+        percent_array=[elem.size for elem in sorted_percents],
+        sections_colors_array=coloring(sorted_percents),
         renderer=RenderBuilder(
             height=SETTINGS.GENERAL_SETTINGS.PLANE.HEIGHT,
             width=SETTINGS.GENERAL_SETTINGS.PLANE.WIDTH, 
@@ -69,7 +91,7 @@ def main():
         ),
         margin_x=SETTINGS.DIAGRAM_SETTINGS.MARGIN_X,
         margin_y=SETTINGS.DIAGRAM_SETTINGS.MARGIN_Y,
-        names_array=[elem[1] for elem in sorted_percents]
+        names_array=[elem.name for elem in sorted_percents]
     )
 
     with open(OUTPUT_FILE, "w+", encoding="utf-8-sig") as f:

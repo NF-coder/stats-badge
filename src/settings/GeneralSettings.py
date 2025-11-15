@@ -1,11 +1,11 @@
 from dataclasses import dataclass
-from .coloring.OKLCHColoring import OKLCHColoring
+from .Coloring import *
 
 @dataclass
 class GeneralSettings:
     TOP_K: int
     PLANE: "PlaneSubsettings"
-    COLORING: OKLCHColoring
+    COLORING: OKLCHColoring | GithubColoring
     EXCLUDED_LANGUAGES: list[str]
 
 @dataclass
