@@ -1,0 +1,23 @@
+general:
+  top_k: 4
+  plane:
+    height: 140
+    width: 250
+  coloring:
+    type: "oklch"
+    chroma: 0.099
+    lightness: 0.636
+  excluded_languages:
+    - Jupyter Notebook
+
+legend:
+  margin_x: 140
+  margin_y: 30
+  space_between_captions: 22
+  font_color: "#c1c1c1"
+
+diagram:
+  outer_radius: 55
+  thickness: 12
+  margin_x: 20
+  margin_y: 15
