@@ -4,9 +4,12 @@ general:
     height: 140
     width: 250
   coloring:
-    type: "oklch"
-    chroma: 0.099
-    lightness: 0.636
+    type: "github"
+    other_color: "#666666"
+  # coloring:
+  #   type: "oklch"
+  #   chroma: 0.099
+  #   lightness: 0.636
   excluded_languages:
     - Jupyter Notebook
 
