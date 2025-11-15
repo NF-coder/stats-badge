@@ -4,7 +4,18 @@ Simple github profile languages stats badges.\
 The project __automatically__ generates a new personal badge every 2 hours.
 
 ## Quick start
-To use this project you should only fork it!\
+To use this project you should:
+1. Fork it
+2. Go to Settings -> Github Pages and change souce to `GitHub Actions`
+<img width="758" height="427" alt="Снимок экрана от 2025-11-15 21-22-09" src="https://github.com/user-attachments/assets/fb4896be-9b2c-440c-a5c4-75669a47506f" style="margin: auto"/>
+
+3. Then go to Actions and click `I understand my workflows, go ahead and enable them`
+<img width="649" height="369" alt="Снимок экрана от 2025-11-15 21-28-24" src="https://github.com/user-attachments/assets/95d245bd-c37e-4fd3-a366-a57f0bf582c2" style="margin: auto"/>
+
+4. Then enable `Update SVG and Deploy to Pages` action and run it (you should to do this only first time)
+<img width="1585" height="237" alt="Снимок экрана от 2025-11-15 21-28-43" src="https://github.com/user-attachments/assets/eeb8f214-174b-42ab-b202-6291c156625c" style="margin: auto"/>
+<img width="1219" height="496" alt="Снимок экрана от 2025-11-15 21-28-55" src="https://github.com/user-attachments/assets/0cf68d59-8029-42f7-9232-f0b09226ef15" style="margin: auto"/>
+
 Then you can use it with
 ```html
 <img src="https://your-gh-page-url/out.svg">
