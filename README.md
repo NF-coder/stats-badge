@@ -1,6 +1,6 @@
 # Stats badge
 
-Simple github profile languages stats budges.\
+Simple github profile languages stats badges.\
 The project __automatically__ generates a new personal badge every 2 hours.
 
 ## Quick start
@@ -9,6 +9,7 @@ Then you can use it with
 ```html
 <img src="https://your-gh-page-url/out.svg">
 ```
+<img src="https://nf-coder.github.io/stats-badge/out.svg">
 
 ## Configuring
 Example config u can see in `setting.yaml`
