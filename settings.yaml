@@ -11,7 +11,8 @@ general:
   #   chroma: 0.099
   #   lightness: 0.636
   excluded_languages:
-    - Jupyter Notebook
+    - Jupyter Notebook # Jupyter files are too large
+    - Typst  # Typst is not programming language
 
 legend:
   margin_x: 140
