@@ -3,88 +3,72 @@ import os
 from renderer.renderer import RenderBuilder
 from oklchUtils.OKLCHUtils import OKLCHUtils
 from calc import Calc
-
+from settings import Settings
 from fetcher.fetcher import FetchLangStats
 
 # Fetch info
 USERNAME = os.environ['USERNAME']
 TOKEN = os.environ['GITHUB_TOKEN']
-
-# Plane settings
-HEIGHT: int = 140
-WIDTH: int = 250
-
-# Captions settings
-LEGEND_MARGIN_X: int = 140
-LEGEND_MARGIN_Y: int = 30
-SPACE_BETWEEN_CAPTIONS: int = 22
-FONT_COLOR: str = "#c1c1c1"
-
-# Color settings
-OKLCH_CHROMA: float = 0.099
-OKLCH_LIGHTNESS: float = 0.636
-OTHER_COLOR_CHROMA: float = 0.000
-
-# Round sizes settings
-OUTER_RADIUS: int = 55
-THICKNESS: int = 12
-
-# Margins settings
-MARGIN_X: int = 20
-MARGIN_Y: int = 15
-
-# Arrays settings
-TOP_K: int = 4
-
-# Output filepath
 OUTPUT_FILE: str = "./out.svg"
+SETTINGS_FILE: str = "./settings.yaml"
 
-def get_langs_data(token: str):
+SETTINGS = Settings.from_yaml(SETTINGS_FILE)
+
+def get_langs_data(
+        token: str,
+        username: str,
+        exclude_langs: list[str] = SETTINGS.GENERAL_SETTINGS.EXCLUDED_LANGUAGES
+    ) -> dict[str, float]:
     info = {}
-    
     total_size = 0
 
-    for elem in FetchLangStats(token).fetch_user(USERNAME):
+    for elem in FetchLangStats(token).fetch_user(username):
+        if elem.name in exclude_langs: continue
+
         total_size += elem.size
         if elem.name not in info: info[elem.name] = elem.size
         else: info[elem.name] += elem.size
 
-    return info.keys(), map(lambda x: x/total_size, info.values())
+    return {k: info[k]/total_size for k in info} 
 
 def truncate(langs_arr: list[tuple[float, str]], k: int):
     if len(langs_arr) <= k: return langs_arr
     return langs_arr[:k-1] + [(sum(map(lambda x: x[0], langs_arr[k-1:])), "Other")]
 
 def main():
-    NAMES_ARR, PERCENT_ARR = get_langs_data(TOKEN)
+    languages_stats = get_langs_data(TOKEN, USERNAME)
 
-    sorted_percents = sorted([(percent, name) for percent,name in zip(PERCENT_ARR, NAMES_ARR)], key=lambda x: x[0], reverse=True)
+    sorted_percents = sorted(
+        [(percent, name) for percent,name in zip(languages_stats.values(), languages_stats.keys())],
+        key=lambda x: x[0],
+        reverse=True
+    )
 
-    sorted_percents = truncate(sorted_percents, TOP_K)
+    sorted_percents = truncate(sorted_percents, SETTINGS.GENERAL_SETTINGS.TOP_K)
 
     _ = Calc(
-        outer_radius=OUTER_RADIUS,
-        thickness=THICKNESS,
+        outer_radius=SETTINGS.DIAGRAM_SETTINGS.OUTER_RADIUS,
+        thickness=SETTINGS.DIAGRAM_SETTINGS.THICKNESS,
         percent_array=[elem[0] for elem in sorted_percents],
         sections_colors_array=OKLCHUtils.create_colors_array(
             length=len(sorted_percents),
-            chroma=OKLCH_CHROMA,
-            lightness=OKLCH_LIGHTNESS
+            chroma=SETTINGS.GENERAL_SETTINGS.COLORING.CHROMA,
+            lightness=SETTINGS.GENERAL_SETTINGS.COLORING.LIGHTNESS
         ),
         renderer=RenderBuilder(
-            height=HEIGHT,
-            width=WIDTH, 
-            outer_radius=OUTER_RADIUS, 
-            thickness=THICKNESS,
-            margin_x=MARGIN_X,
-            margin_y=MARGIN_Y, 
-            legend_margin_x=LEGEND_MARGIN_X,
-            legend_margin_y=LEGEND_MARGIN_Y, 
-            space_between_captions=SPACE_BETWEEN_CAPTIONS,
-            font_color=FONT_COLOR
+            height=SETTINGS.GENERAL_SETTINGS.PLANE.HEIGHT,
+            width=SETTINGS.GENERAL_SETTINGS.PLANE.WIDTH, 
+            outer_radius=SETTINGS.DIAGRAM_SETTINGS.OUTER_RADIUS, 
+            thickness=SETTINGS.DIAGRAM_SETTINGS.THICKNESS,
+            margin_x=SETTINGS.DIAGRAM_SETTINGS.MARGIN_X,
+            margin_y=SETTINGS.DIAGRAM_SETTINGS.MARGIN_Y, 
+            legend_margin_x=SETTINGS.LEGEND_SETTINGS.MARGIN_X,
+            legend_margin_y=SETTINGS.LEGEND_SETTINGS.MARGIN_Y, 
+            space_between_captions=SETTINGS.LEGEND_SETTINGS.SPACE_BETWEEN_CAPTIONS,
+            font_color=SETTINGS.LEGEND_SETTINGS.FONT_COLOR
         ),
-        margin_x=MARGIN_X,
-        margin_y=MARGIN_Y,
+        margin_x=SETTINGS.DIAGRAM_SETTINGS.MARGIN_X,
+        margin_y=SETTINGS.DIAGRAM_SETTINGS.MARGIN_Y,
         names_array=[elem[1] for elem in sorted_percents]
     )
 
