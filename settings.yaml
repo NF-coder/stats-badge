@@ -13,6 +13,7 @@ general:
   excluded_languages:
     - Jupyter Notebook # Jupyter files are too large
     - Typst  # Typst is not programming language
+    - TeX    # TeX is also not a programming language
 
 legend:
   margin_x: 140
