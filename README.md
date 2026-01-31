@@ -1,7 +1,7 @@
 # Stats badge
 
 Simple github profile languages stats badges.\
-The project __automatically__ generates a new personal badge every 2 hours.
+The project __automatically__ generates a new personal badge every 6 hours.
 
 <img src="https://nf-coder.github.io/stats-badge/out.svg">
 
